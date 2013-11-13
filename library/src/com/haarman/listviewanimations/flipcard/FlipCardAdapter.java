@@ -1,5 +1,6 @@
 package com.haarman.listviewanimations.flipcard;
 
+import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -10,11 +11,10 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 
-import com.haarman.listviewanimations.ArrayAdapter;
 import com.haarman.listviewanimations.BaseAdapterDecorator;
 
 public class FlipCardAdapter extends BaseAdapterDecorator implements
-		FlipCardListViewTouchListener.Callback {
+		ViewActionCallback {
 	private final float ROTATION_DEPTH = 200.0f;
 	private final int ROTATION_DURATION = 300;
 	private FlipCardListViewTouchListener mFlipCardListViewTouchListener;
@@ -59,6 +59,12 @@ public class FlipCardAdapter extends BaseAdapterDecorator implements
 
 		flipedItemPosition = flipedFlag ? flipPosition : -1;
 		flipedItemView = flipedFlag ? flipView : null;
+	}
+
+	@Override
+	public void onViewSwiping(View flipView, int flipPosition,
+			boolean flipFromRight, int progress) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -243,5 +249,12 @@ public class FlipCardAdapter extends BaseAdapterDecorator implements
 		} else {
 			return COUNTER_CLOCK_WISE_ROTATION_BACK;
 		}
+	}
+
+	@Override
+	public void onViewActionCancel(View flipView) {
+		// TODO Auto-generated method stub
+		animate(flipView).translationX(0).alpha(1).setDuration(200)
+				.setListener(null);
 	}
 }

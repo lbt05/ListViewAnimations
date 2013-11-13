@@ -3,6 +3,7 @@ package com.haarman.listviewanimations.flipcard;
 import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
 
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -21,7 +22,7 @@ public class FlipCardListViewTouchListener implements SwipeOnTouchListener {
 	private long mAnimationTime;
 	// Fixed properties
 	private AbsListView mListView;
-	private Callback mCallback;
+	private ViewActionCallback mCallback;
 	private int mViewWidth = 1; // 1 and not 0 to prevent dividing by zero
 
 	// Transient properties
@@ -38,14 +39,8 @@ public class FlipCardListViewTouchListener implements SwipeOnTouchListener {
 	private int mResIdOfTouchChild;
 	private boolean mTouchChildTouched;
 
-	public interface Callback {
-
-		void onViewSwiped(View flipView, int flipPosition, boolean flipFromRight);
-
-		void onListScrolled();
-	}
-
-	public FlipCardListViewTouchListener(AbsListView listView, Callback callback) {
+	public FlipCardListViewTouchListener(AbsListView listView,
+			ViewActionCallback callback) {
 		ViewConfiguration vc = ViewConfiguration.get(listView.getContext());
 		mSlop = vc.getScaledTouchSlop();
 		mMinFlingVelocity = vc.getScaledMinimumFlingVelocity();
@@ -180,8 +175,7 @@ public class FlipCardListViewTouchListener implements SwipeOnTouchListener {
 				mCallback.onViewSwiped(downView, downPosition, flipFromRight);
 			} else {
 				// cancel
-				animate(mDownView).translationX(0).alpha(1)
-						.setDuration(mAnimationTime).setListener(null);
+				mCallback.onViewActionCancel(mDownView);
 			}
 
 			mVelocityTracker.recycle();
@@ -223,7 +217,12 @@ public class FlipCardListViewTouchListener implements SwipeOnTouchListener {
 				 * no idea how to implements rotationY with deltaY Ask for help
 				 * from community
 				 */
-
+				final View downView = mDownView;
+				final int downPosition = mDownPosition;
+				boolean flipFromRight = deltaX > 0;
+				int progress = Math.round(Math.abs(deltaX / mViewWidth) * 100);
+				mCallback.onViewSwiping(downView, downPosition, flipFromRight,
+						progress);
 				return true;
 			}
 			return false;
@@ -255,13 +254,13 @@ public class FlipCardListViewTouchListener implements SwipeOnTouchListener {
 		return childRect;
 	}
 
-	void setIsParentHorizontalScrollContainer(
+	public void setIsParentHorizontalScrollContainer(
 			boolean isParentHorizontalScrollContainer) {
 		mIsParentHorizontalScrollContainer = (mResIdOfTouchChild == 0) ? isParentHorizontalScrollContainer
 				: false;
 	}
 
-	void setTouchChild(int childResId) {
+	public void setTouchChild(int childResId) {
 		mResIdOfTouchChild = childResId;
 		if (childResId != 0) {
 			setIsParentHorizontalScrollContainer(false);
